@@ -1,0 +1,47 @@
+version: '3'
+services:
+  database:
+    restart: always
+    container_name: docker-mysql
+    image: mysql
+    environment:
+      MYSQL_DATABASE: music
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_HOST: '%'
+    volumes:
+        - dockerMusicAppData:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+        - backendNetwork
+  music-api:
+    restart: on-failure
+    container_name: music-service
+    image: music/201server
+    expose:
+      - "8080"
+    ports: 
+      - 8080:8080
+    environment:
+      WAIT_HOSTS: docker-mysql:3306
+    depends_on:
+      - database
+    networks:
+        - frontendNetwork
+        - backendNetwork
+  angular:
+    restart: on-failure
+    container_name: music-ui
+    image: music_201_ui
+    ports:
+        - "4200:4200"
+    depends_on:
+        - music-api
+    networks:
+        - frontendNetwork
+        
+volumes: 
+    dockerMusicAppData:
+networks:
+    backendNetwork:
+    frontendNetwork:
